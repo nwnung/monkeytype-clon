@@ -2,7 +2,11 @@ import { AuthButton } from "@/components/auth/auth-button";
 import { ThemeSwitcher } from "@/components/auth/theme-switcher";
 import Link from "next/link";
 
-export default function Home() {
+export default function ProtectedLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <main className="min-h-screen flex flex-col items-center">
       <div className="flex-1 w-full flex flex-col gap-20 items-center">
@@ -15,31 +19,7 @@ export default function Home() {
           </div>
         </nav>
         <div className="flex-1 flex flex-col gap-20 max-w-5xl p-5">
-          <main className="flex-1 flex flex-col gap-6 px-4">
-            <div className="text-center">
-              <h1 className="font-bold text-4xl mb-4">
-                Bienvenido a tu aplicación Supabase
-              </h1>
-              <p className="text-muted-foreground text-lg mb-8">
-                Una aplicación Next.js con autenticación Supabase lista para
-                usar
-              </p>
-              <div className="flex gap-4 justify-center">
-                <Link
-                  href="/auth/sign-in"
-                  className="bg-primary text-primary-foreground hover:bg-primary/90 px-6 py-3 rounded-md font-medium transition-colors"
-                >
-                  Iniciar Sesión
-                </Link>
-                <Link
-                  href="/auth/sign-up"
-                  className="border border-input bg-background hover:bg-accent hover:text-accent-foreground px-6 py-3 rounded-md font-medium transition-colors"
-                >
-                  Registrarse
-                </Link>
-              </div>
-            </div>
-          </main>
+          {children}
         </div>
 
         <footer className="w-full flex items-center justify-center border-t mx-auto text-center text-xs gap-8 py-16">

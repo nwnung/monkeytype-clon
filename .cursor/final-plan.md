@@ -20,7 +20,7 @@
     4.  Crea un archivo `.env.local` a partir de `.env.local.example` y rellena las URL de tu proyecto Supabase.
     5.  Ejecuta `npx shadcn-ui@latest init` y sigue las instrucciones para configurar la CLI.
 
-- [ ] Paso 2: Esquema de Base de Datos y Seeding
+- [x] Paso 2: Esquema de Base de Datos y Seeding
 
   - **Tarea**: Definir el esquema completo de la base de datos en `schema.prisma`. Crear un script de seeding para poblar la base de datos con listas de palabras iniciales (p. ej., "english_200"). Configurar el cliente de Prisma.
   - **Archivos**:
@@ -33,7 +33,7 @@
     1.  Ejecuta `npx prisma db push` para sincronizar tu esquema con la base de datos de Supabase.
     2.  Ejecuta `npx prisma db seed` para poblar la base de datos.
 
-- [ ] Paso 3: Políticas de Seguridad de la Base de Datos (RLS)
+- [x] Paso 3: Políticas de Seguridad de la Base de Datos (RLS)
 
   - **Tarea**: Implementar las políticas de seguridad a nivel de fila (RLS) para la tabla `TestResult` para garantizar que los usuarios solo puedan acceder y escribir sus propios datos.
   - **Archivos**: Ninguno (es una operación en la base de datos).
@@ -60,7 +60,7 @@
 
 ## Fase 2: Autenticación y Layout Básico
 
-- [ ] Paso 4: Configuración de la Autenticación de Supabase
+- [x] Paso 4: Configuración de la Autenticación de Supabase
 
   - **Tarea**: Configurar los helpers de `@supabase/ssr` para manejar la autenticación en el cliente, servidor y middleware. Crear el middleware para proteger rutas.
   - **Archivos**:
@@ -68,7 +68,7 @@
     - `middleware.ts`: Implementar el middleware que usa `createMiddlewareClient` para refrescar la sesión del usuario en cada petición y proteger las rutas definidas en el `matcher`.
   - **Dependencias del Paso**: Paso 1.
 
-- [ ] Paso 5: Layout Principal y Sistema de Temas
+- [] Paso 5: Layout Principal y Sistema de Temas
 
   - **Tarea**: Crear el layout raíz de la aplicación, incluyendo el `ThemeProvider` para el cambio de tema claro/oscuro. Instalar y crear un componente `Header` básico y un `ThemeToggle`.
   - **Archivos**:
@@ -82,7 +82,7 @@
   - **Instrucciones del Usuario**:
     1.  Ejecuta `npx shadcn-ui@latest add button dropdown-menu`.
 
-- [ ] Paso 6: Páginas y Formularios de Autenticación
+- [] Paso 6: Páginas y Formularios de Autenticación
 
   - **Tarea**: Crear las páginas de Iniciar Sesión (`/login`) y Registrarse (`/signup`). Implementar los formularios usando `react-hook-form` y `zod` para la validación, y llamar a los métodos de autenticación de Supabase en el envío.
   - **Archivos**:
