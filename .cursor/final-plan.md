@@ -2,7 +2,7 @@
 
 ## Fase 1: Configuración del Proyecto y Base de Datos
 
-- [ ] Paso 1: Inicialización del Proyecto y Dependencias
+- [x] Paso 1: Inicialización del Proyecto y Dependencias
 
   - **Tarea**: Crear un nuevo proyecto Next.js. Instalar y configurar TailwindCSS. Instalar todas las dependencias necesarias: Prisma, cliente de Supabase, Shadcn/UI, next-themes, react-hook-form, zod, etc. Crear la estructura de directorios inicial.
   - **Archivos**:
