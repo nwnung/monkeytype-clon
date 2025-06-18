@@ -1,0 +1,339 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Reglas de Estructura de Código
+
+## Organización de Carpetas
+```
+src/
+  ├── app/                   # App Router de Next.js
+  │   ├── api/               # Rutas API
+  │   ├── (auth)/            
+  │   └── (application)/         
+  ├── components/
+  │   ├── ui/                # Componentes de UI reutilizables (shadcn)
+  │   ├── layout/            # Componentes de estructura (header, footer, etc)
+  │   └── [feature]/         # Componentes específicos por característica
+  ├── hooks/                 # Custom hooks
+  ├── lib/                   # Utilidades y configuraciones
+  │   ├── supabase/          # Configuración de Supabase
+  │   ├── ai/                # Configuración de AI
+  │   └── utils/             # Funciones utilitarias
+  ├── schemas/               # Esquemas Zod
+  ├── store/                 # Stores de Zustand
+  ├── styles/                # Estilos globales
+  └── types/                 # Tipos TypeScript
+```
+
+## Convenciones de Archivos
+- Un componente por archivo
+- Nombrar archivos en kebab-case para componentes y utilidades
+- Prefijo `use-` para hooks personalizados
+- `index.ts` para re-exportaciones
+
+## Patrones de Importación
+- Importaciones absolutas desde la raíz con alias `@/`
+- Agrupar importaciones: React, Next.js, librerías externas, internas
+- No importar directamente desde `node_modules`
+- Evitar importaciones circulares
+
+## Server Components vs Client Components
+- Usar Server Components por defecto
+- Marcar Client Components con `'use client'` en primera línea
+- Mover lógica interactiva a Client Components específicos
+- Pasar datos desde Server Components a Client Components via props
+
+## Organización de Funciones
+- Hooks personalizados para lógica reutilizable
+- Funciones puras para transformaciones de datos
+- Separar lógica de UI de lógica de negocio
+- Una función, una responsabilidad
+
+---
+
+# Reglas de Manejo de Errores
+
+## Estructura de Errores
+- Definir tipos de error en `src/types/errors.ts`
+- Cada error debe tener: código, mensaje, metadata, timestamp
+
+## Captura y Manejo
+- Implementar error boundaries en `src/components/error-boundary.tsx`
+- Usar try/catch en todas las operaciones asíncronas
+- Estructura try/catch/finally consistente
+- No silenciar errores sin registro o manejo explícito
+
+## UI de Errores
+- Componente de fallback en `src/components/ui/error-fallback.tsx`
+- Mostrar mensajes amigables al usuario
+- Ofrecer acciones de recuperación cuando sea posible
+- Diferentes visualizaciones según nivel de error (notificación, modal, página completa)
+
+## Logging
+- Registrar todos los errores en consola con detalles en desarrollo
+- Incluir contexto: ruta, usuario (sin datos sensibles), acción, timestamp
+- Implementar middleware para errores de API en `src/middleware.ts`
+
+## Manejo de Errores de API
+- Respuestas de error estandarizadas:
+  ```typescript
+  {
+    statusCode: number;
+    message: string;
+    details?: any;
+    timestamp: string;
+    path: string;
+  }
+  ```
+- Utilizar HTTP status codes apropiados (4xx cliente, 5xx servidor)
+- Errores de validación deben incluir campo y razón específica
+
+## Prevención
+- Validación con Zod para todas las entradas de usuario
+- Tipado estricto con TypeScript (no any sin justificación)
+- Aserciones de tipo en límites de sistema (API, almacenamiento)
+
+---
+
+# Reglas de Rendimiento
+
+## Optimización de Imágenes
+- Usar `next/image` para todas las imágenes
+- Definir dimensiones `width` y `height` para evitar CLS
+- Implementar lazy loading para imágenes bajo el fold
+- Utilizar placeholders o blur para carga progresiva
+
+## Renderización
+- Implementar virtualizacíón para listas largas (>20 items)
+- Usar `React.memo` para componentes que reciben props estáticas frecuentemente
+- Implementar Suspense y lazy loading para code splitting
+- Evitar re-renders innecesarios (useMemo, useCallback)
+- Prefetching de rutas críticas
+
+## Caché
+- Implementar SWR o React Query para caché de datos
+- Estrategias adecuadas de revalidación
+- Usar localStorage para datos persistentes no críticos
+- Cachear respuestas de API con estrategias apropiadas de invalidación
+- Configurar reglas de caché HTTP para assets estáticos
+
+## Métricas Core Web Vitals
+- LCP < 2.5s (Largest Contentful Paint)
+- FID < 100ms (First Input Delay)
+- CLS < 0.1 (Cumulative Layout Shift)
+- TTI < 3.8s (Time to Interactive)
+
+## Base de Datos
+- Índices para consultas frecuentes
+- Optimizar joins y relaciones
+- Limitar número de consultas por página
+- Usar Prisma para consultas eficientes
+- Aprovechar caching de Supabase
+
+## API
+- Implementar API routes con métodos HTTP apropiados
+- Response compression
+- Rate limiting para prevenir abusos
+- Batch requests para operaciones múltiples
+- Paginación para conjuntos grandes de datos
+
+---
+
+
+# Reglas de Seguridad
+
+## Autenticación y Autorización
+- Implementar autenticación con Supabase Auth
+- Middleware de autenticación en `src/middleware.ts`
+- RBAC (Role-Based Access Control) para permisos
+- Implementar Row Level Security (RLS) en Supabase
+- Separar rutas protegidas en grupo `(auth)`
+- Refresh tokens seguros y rotación apropiada
+
+## Datos Sensibles
+- No exponer claves API en el cliente
+- Encriptar datos sensibles en base de datos
+- No almacenar información financiera o de salud sin cumplimiento regulatorio
+- Sanitizar data user-generated antes de mostrarla
+- No exponer IDs internos en URLs o respuestas API
+
+## Protección contra Ataques
+- CSP (Content Security Policy) configurado
+- Protección CSRF en formularios
+- Rate limiting para endpoints sensibles
+- Validación de entrada en todos los endpoints
+- Sanitización de HTML para contenido generado por usuarios
+- Protección contra inyección SQL con Prisma/Supabase
+
+## Gestión de Sesiones
+- HTTP-only cookies para tokens
+- Timeouts de sesión apropiados
+- Opciones de "mantener sesión iniciada" seguras
+- Registro de dispositivos autorizados (opcional)
+- Capacidad de cerrar sesiones remotamente
+
+## Auditoría y Logging
+- Registrar eventos de seguridad críticos
+- Mantener historial de cambios sensibles
+- Detección de actividad sospechosa
+- Logs inaccesibles para usuarios normales
+- Rotación de logs y retención apropiada
+
+
+# Reglas de Server Actions
+
+## Definición y Organización
+- Definir Server Actions en archivos dedicados dentro de `src/lib/actions/` o `src/app/_actions/`.
+  - Ejemplo: `src/lib/actions/user.actions.ts`, `src/lib/actions/post.actions.ts`
+- Usar la directiva `'use server';` al inicio del archivo o de la función exportada.
+- Evitar definir actions complejas inline dentro de componentes; preferir archivos separados para reutilización y testeo.
+- Nombrar las funciones de acción con camelCase y sufijo `Action` (opcional pero recomendado para claridad): `createUserAction`, `updatePostAction`.
+
+## Input y Output
+- **Validación de Entrada:** Validar *siempre* los argumentos de entrada de las actions usando Zod.
+- **Tipado de Retorno:** Definir un tipo de retorno explícito y consistente para las actions, típicamente un objeto que indique éxito/error y datos/mensaje.
+  ```typescript
+  type ActionResult<T = null> =
+    | { success: true; data: T }
+    | { success: false; error: { message: string; details?: any } };
+
+  export async function myAction(input: ValidatedInput): Promise<ActionResult<MyData>> {
+    // ...
+  }
+  ```
+
+---
+
+# Reglas de Stack Tecnológico
+
+## Next.js 15+
+- Usar App Router exclusivamente
+- Implementar Server Components para todo lo que no requiera interactividad cliente
+- Rutas API en `src/app/api/[ruta]/route.ts`
+- Metadata para SEO en cada página con `generateMetadata`
+- Layouts anidados para estructura de UI común
+- Loading states con `loading.tsx`
+- Error handling con `error.tsx`
+- Server Actions para mutaciones y lógica del lado del servidor iniciada por el cliente (ver `server-actions.mdc`).
+
+## TypeScript
+- Tipos estrictos, sin uso de `any` excepto en casos específicos documentados
+- Interfaces/tipos en archivos separados o junto al componente dependiendo de reutilización
+- Generics para componentes/hooks reutilizables
+- Enums para valores predefinidos
+- Tipado de respuestas API y esquemas de base de datos
+- Rutas de importación absolutas con alias `@/`
+
+## Supabase (2.20.5)
+- Cliente inicializado en `src/lib/supabase/client.ts` (cliente)
+- Autenticación implementada en `src/lib/auth.ts`
+- Tablas definidas como tipos en `src/types/database.ts` usando generador de tipos de Supabase
+- Bucket de almacenamiento con políticas de seguridad en `supabase/storage.sql`
+- RLS (Row Level Security) para todas las tablas
+- Hooks personalizados para operaciones comunes en `src/hooks/use-supabase-*.ts`
+- Usar Supabase Client (JS) principalmente para Autenticación, Almacenamiento (Storage) y Suscripciones Realtime.
+- Supabase Cookie Handling (`@supabase/ssr`)
+- Utilizar el paquete `@supabase/ssr` para gestionar las cookies de sesión de forma segura entre Server Components, Client Components, Route Handlers y Server Actions.
+
+
+## Prisma ORM
+- Schema en `prisma/schema.prisma`
+- Cliente en `src/lib/prisma.ts`
+- Modelos correspondientes a tablas de Supabase
+- Seeding de datos en `prisma/seed.ts`
+- Relaciones bien definidas con cardinalidad apropiada
+- Usar Prisma Client como la herramienta principal y única para todas las operaciones CRUD de base de datos (lecturas y escrituras).
+
+
+## TailwindCSS y Shadcn UI
+- Variables CSS en `src/styles/globals.css`
+- Componentes shadcn en `src/components/ui/`
+- Tema personalizado en `src/components/ui/theme-provider.tsx`
+- Extensiones de componentes en `src/components/[funcionalidad]/`
+
+## Temas
+- next/themes para cambio de tema claro/oscuro
+- Persistencia de preferencia de tema en localStorage
+- Detección inicial basada en preferencias del sistema
+- Variables CSS para tokens de color en modo claro/oscuro
+
+## Vercel AI SDK
+- Cliente en `src/lib/ai/client.ts`
+- Modelos y proveedores configurados en `.env`
+- Streams para UI responsiva
+- Componentes de chat en `src/components/ai/`
+- Funciones de generación en `src/lib/ai/generators/`
+
+## Zod
+- Esquemas en `src/schemas/`
+- Validación de formularios con react-hook-form + zod
+- Validación de API input/output
+- Inferencia de tipos a partir de esquemas
+
+## Zustand
+- Stores en `src/store/`
+- Un store por dominio funcional
+- Selectores para acceder a partes específicas del estado
+- Acciones para modificar estado
+- Persistencia con zustand/middleware cuando sea necesario
+
+
+# Reglas de Gestión de Estado
+
+## Estado Local
+- `useState` para estado local simple de componentes
+- `useReducer` para estados complejos o con múltiples subvalores relacionados
+- Evitar prop drilling con composición o context apropiado
+
+## React Context
+- Crear para estado que debe ser accesible en múltiples componentes
+- Implementar en `src/contexts/[nombre]-context.tsx`
+- Proveer en el nivel más bajo posible de la jerarquía
+- Separar lecturas de escrituras para evitar re-renders
+- Custom hooks para acceder al contexto: `useTheme`, `useAuth`
+
+## Estado de Formularios
+- Usar `react-hook-form` para gestión de formularios
+- Validación con Zod
+- Estado controlado para campos interactivos complejos
+- Separar estado de UI del estado de datos
+
+
+# Reglas de UI
+
+## Componentes
+- Todos los componentes UI deben estar en `src/components/ui`
+- Los componentes de shadcn/ui deben seguir el patrón de importación de `@/components/ui/[nombre]`
+- Cada componente debe tener su propio archivo y exportarse como default
+- Usa Tailwind CSS para estilos con clases utilitarias, evitando CSS separados
+
+## Diseño y Accesibilidad
+- Implementar diseño responsive para todos los componentes
+- Asegurar contraste adecuado (mínimo AA de WCAG)
+- Incluir atributos ARIA apropiados para cada componente
+- Todos los elementos interactivos deben ser navegables por teclado
+
+## Theming
+- Utilizar next/themes para gestión de temas claro/oscuro
+- Variables CSS para tokens de diseño en `src/styles/globals.css`
+- Paleta de colores primaria definida en `tailwind.config.ts`
+- Transiciones suaves (300ms) para cambios de tema
+
+## Shadcn/UI
+- Modificaciones a componentes shadcn deben hacerse en `src/components/ui/[nombre].tsx`
+- Mantener estilos consistentes con la guía de diseño del proyecto
+- Preferir extensión sobre modificación para componentes de la librería
+
+## Íconos
+- Usar Lucide React para íconos
+- Tamaños consistentes: sm (16px), md (20px), lg (24px), xl (32px)
+- Usar el mismo color que el texto contextual por defecto
+
+## Formularios
+- Usar componentes de formulario de shadcn/ui
+- Validación con Zod
+- Mostrar errores de validación inline
+
+- Estado de loading/success/error visual para todos los formularios
