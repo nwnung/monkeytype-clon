@@ -1,0 +1,71 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+}
+
+// Corresponds to Supabase's auth.users table
+model User {
+  id          String       @id @default(uuid())
+  email       String?      @unique
+  // Add other fields you need from auth.users
+  testResults TestResult[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@map("users")
+}
+
+model WordList {
+  id          String       @id @default(cuid())
+  name        String       @unique
+  lang        String
+  description String?
+  words       Word[]
+  tests       TestResult[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@map("word_lists")
+}
+
+model Word {
+  id         String   @id @default(cuid())
+  text       String
+  wordList   WordList @relation(fields: [wordListId], references: [id], onDelete: Cascade)
+  wordListId String
+  createdAt  DateTime @default(now())
+
+  @@index([wordListId])
+  @@map("words")
+}
+
+model TestResult {
+  id         String   @id @default(cuid())
+  wpm        Int
+  accuracy   Float
+  duration   Int      // in seconds
+  createdAt  DateTime @default(now())
+
+  // Relation to User
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String
+
+  // Relation to WordList
+  wordList   WordList @relation(fields: [wordListId], references: [id])
+  wordListId String
+
+  // Additional fields for detailed analysis
+  correctChars   Int
+  incorrectChars Int
+  totalChars     Int
+
+  @@index([userId, createdAt])
+  @@map("test_results")
+} 
