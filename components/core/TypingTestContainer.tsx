@@ -1,20 +1,78 @@
 "use client";
 
+import { useMemo } from "react";
 import { WordData } from "@/lib/words";
+import { TestWord, TestCharacter, TestConfig } from "@/lib/types";
+import { Character } from "./Character";
+import { Caret } from "./Caret";
 
 interface TypingTestContainerProps {
   initialWords: WordData[];
 }
 
+/**
+ * Convierte las palabras iniciales en el formato requerido para el test
+ */
+function prepareTestWords(words: WordData[]): TestWord[] {
+  let globalIndex = 0;
+
+  return words.map((wordData, wordIndex) => {
+    const characters: TestCharacter[] = [];
+
+    // Convertir cada carácter de la palabra
+    wordData.text.split("").forEach((char, charIndex) => {
+      characters.push({
+        char,
+        status: "pending",
+        globalIndex: globalIndex++,
+        wordIndex,
+        charIndex,
+        isSpace: false,
+      });
+    });
+
+    // Añadir espacio después de cada palabra (excepto la última)
+    if (wordIndex < words.length - 1) {
+      characters.push({
+        char: " ",
+        status: "pending",
+        globalIndex: globalIndex++,
+        wordIndex,
+        charIndex: wordData.text.length,
+        isSpace: true,
+      });
+    }
+
+    return {
+      data: wordData,
+      characters,
+      index: wordIndex,
+    };
+  });
+}
+
 export function TypingTestContainer({
   initialWords,
 }: TypingTestContainerProps) {
-  // TODO: En los siguientes pasos implementaremos:
-  // - useReducer para manejar el estado complejo del test
-  // - Event listeners para capturar la entrada del teclado
-  // - Lógica del temporizador
-  // - Cálculo de métricas (WPM, precisión)
-  // - Renderizado de caracteres con estados (correcto/incorrecto/pendiente)
+  // Configuración inicial del test
+  const testConfig: TestConfig = {
+    duration: 60,
+    wordListName: "english_200",
+  };
+
+  // Preparar las palabras para el test (memoizado para evitar recálculos)
+  const testWords = useMemo(() => {
+    return prepareTestWords(initialWords.slice(0, 50)); // Limitamos a 50 palabras para empezar
+  }, [initialWords]);
+
+  // Crear un array plano de todos los caracteres para renderizado
+  const allCharacters = useMemo(() => {
+    return testWords.flatMap((word) => word.characters);
+  }, [testWords]);
+
+  // Estado inicial (en próximos pasos esto será manejado por useReducer)
+  const currentPosition = 0;
+  const isTestRunning = false;
 
   return (
     <div className="w-full max-w-4xl mx-auto p-6">
@@ -31,7 +89,7 @@ export function TypingTestContainer({
           </div>
           <div>
             <span className="font-medium">Tiempo:</span>{" "}
-            <span className="text-lg font-bold">60s</span>
+            <span className="text-lg font-bold">{testConfig.duration}s</span>
           </div>
         </div>
       </div>
@@ -42,29 +100,23 @@ export function TypingTestContainer({
         tabIndex={0}
         // TODO: Añadir autoFocus y event listeners en próximos pasos
       >
-        {/* Contenedor de palabras */}
-        <div className="text-xl leading-relaxed space-x-1 flex flex-wrap">
-          {initialWords.slice(0, 50).map((word, wordIndex) => (
-            <span key={`${word.id}-${wordIndex}`} className="inline-block">
-              {word.text.split("").map((char, charIndex) => (
-                <span
-                  key={`${word.id}-${wordIndex}-${charIndex}`}
-                  className="relative inline-block"
-                >
-                  {/* TODO: Aplicar clases de estado en próximos pasos */}
-                  <span className="text-muted-foreground">{char}</span>
-                </span>
-              ))}
-              {/* Espacio después de cada palabra */}
-              {wordIndex < initialWords.slice(0, 50).length - 1 && (
-                <span className="text-muted-foreground"> </span>
-              )}
-            </span>
+        {/* Contenedor de palabras y caracteres */}
+        <div className="text-xl leading-relaxed relative">
+          {/* Renderizar todos los caracteres */}
+          {allCharacters.map((character, index) => (
+            <Character
+              key={`char-${character.globalIndex}`}
+              character={character}
+              isActive={index === currentPosition}
+            />
           ))}
-        </div>
 
-        {/* Cursor/Caret - TODO: Implementar posicionamiento dinámico */}
-        <div className="absolute top-6 left-6 w-0.5 h-6 bg-primary animate-pulse" />
+          {/* Cursor posicionado en el carácter actual */}
+          <Caret
+            position={currentPosition}
+            isVisible={!isTestRunning} // Visible cuando no está corriendo el test
+          />
+        </div>
       </div>
 
       {/* Instrucciones */}
@@ -75,12 +127,31 @@ export function TypingTestContainer({
         </p>
       </div>
 
-      {/* Debug: Mostrar información de las palabras cargadas */}
+      {/* Debug: Información del renderizado */}
       <div className="mt-8 p-4 bg-muted rounded-lg">
-        <p className="text-sm text-muted-foreground">
-          <strong>Debug:</strong> Se cargaron {initialWords.length} palabras.
-          Mostrando las primeras 50 para el test.
-        </p>
+        <div className="space-y-2 text-sm text-muted-foreground">
+          <p>
+            <strong>Debug:</strong> Se cargaron {initialWords.length} palabras
+            originales.
+          </p>
+          <p>
+            Renderizando {testWords.length} palabras con {allCharacters.length}{" "}
+            caracteres totales.
+          </p>
+          <p>
+            Posición actual del cursor: {currentPosition} /{" "}
+            {allCharacters.length}
+          </p>
+          <p>
+            Estados:{" "}
+            {allCharacters.filter((c) => c.status === "pending").length}{" "}
+            pendientes,{" "}
+            {allCharacters.filter((c) => c.status === "correct").length}{" "}
+            correctos,{" "}
+            {allCharacters.filter((c) => c.status === "incorrect").length}{" "}
+            incorrectos
+          </p>
+        </div>
       </div>
     </div>
   );

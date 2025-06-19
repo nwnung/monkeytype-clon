@@ -114,7 +114,7 @@
     - `components/core/TypingTestContainer.tsx`: Crear el esqueleto del componente (Client Component) que recibe `initialWords`.
   - **Dependencias del Paso**: Paso 2, Paso 5.
 
-- [ ] Paso 9: Renderizado Estático del Test y Estilos
+- [x] Paso 9: Renderizado Estático del Test y Estilos
 
   - **Tarea**: Implementar el renderizado visual del test. Mapear las palabras y caracteres usando los componentes `Character` (memoizado) y `Caret`. Aplicar los estilos correctos para los estados `pending`, `correct`, `incorrect`.
   - **Archivos**:
