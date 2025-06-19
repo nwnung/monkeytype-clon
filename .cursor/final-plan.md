@@ -105,7 +105,7 @@
 
 ## Fase 3: Implementación del Test de Mecanografía
 
-- [ ] Paso 8: Página Principal y Carga Inicial de Palabras
+- [x] Paso 8: Página Principal y Carga Inicial de Palabras
 
   - **Tarea**: Crear la página de inicio `app/(main)/page.tsx` como un Server Component que obtiene el conjunto inicial de palabras de la base de datos (usando el cliente Prisma) y las pasa como props a un componente de cliente contenedor.
   - **Archivos**:
