@@ -131,7 +131,7 @@
     - `components/core/TypingTestContainer.tsx`: Introducir `useReducer` y el listener `useEffect` para `keydown`. Implementar la lógica que actualiza el estado de los caracteres y la posición del cursor en respuesta a la entrada. El área debe tener `autoFocus`.
   - **Dependencias del Paso**: Paso 9.
 
-- [ ] Paso 11: Temporizador, Cálculo de Métricas y Finalización
+- [x] Paso 11: Temporizador, Cálculo de Métricas y Finalización
 
   - **Tarea**: Añadir la lógica del temporizador que se inicia cuando el usuario empieza a escribir. Calcular y mostrar WPM y precisión en tiempo real en la UI. Detener el test cuando el tiempo llega a cero y cambiar el estado a `finished`.
   - **Archivos**:
@@ -139,7 +139,7 @@
     - `lib/utils.ts`: Añadir funciones puras para calcular `wpm` y `accuracy`.
   - **Dependencias del Paso**: Paso 10.
 
-- [ ] Paso 12: Pantalla de Resultados y Server Action para Guardar
+- [x] Paso 12: Pantalla de Resultados y Server Action para Guardar
   - **Tarea**: Crear el componente de `Results` que se muestra cuando el test finaliza. Crear la Server Action `saveTestResult` que recalcula las métricas en el servidor y las guarda en la base de datos. Conectar el `TypingTestContainer` para que llame a esta acción al finalizar el test.
   - **Archivos**:
     - `components/core/Results.tsx`: Componente que muestra las métricas finales (WPM, precisión).

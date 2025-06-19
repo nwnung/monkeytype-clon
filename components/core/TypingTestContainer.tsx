@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useReducer, useEffect, useRef } from "react";
+import { useMemo, useReducer, useEffect, useRef, useState } from "react";
 import { WordData } from "@/lib/words";
 import {
   TestWord,
@@ -13,6 +13,9 @@ import {
 import { calculateWPM, calculateAccuracy } from "@/lib/utils";
 import { Character } from "./Character";
 import { Caret } from "./Caret";
+import { Results } from "./Results";
+import { saveTestResult, SaveTestResultData } from "@/lib/actions/test";
+import { toast } from "sonner";
 
 interface TypingTestContainerProps {
   initialWords: WordData[];
@@ -264,7 +267,7 @@ export function TypingTestContainer({
   // Configuración inicial del test
   const testConfig: TestConfig = {
     duration: 60,
-    wordListName: "english_200",
+    wordListName: "english_common",
   };
 
   // Preparar las palabras para el test (memoizado para evitar recálculos)
@@ -292,6 +295,9 @@ export function TypingTestContainer({
 
   // Reducer para manejar el estado
   const [state, dispatch] = useReducer(typingTestReducer, initialState);
+
+  // Estado para controlar si ya se guardó el resultado
+  const [hasSaved, setHasSaved] = useState<boolean>(false);
 
   // Referencia al contenedor para el foco
   const containerRef = useRef<HTMLDivElement>(null);
@@ -349,6 +355,72 @@ export function TypingTestContainer({
       containerRef.current.focus();
     }
   }, []);
+
+  // Guardar resultado automáticamente cuando el test termine
+  useEffect(() => {
+    if (state.status === "finished" && state.startTime && !hasSaved) {
+      const saveResult = async () => {
+        // Mostrar toast de guardando
+        const loadingToast = toast.loading("Guardando resultado...");
+
+        try {
+          const testDurationMs = Date.now() - state.startTime!;
+          const saveData: SaveTestResultData = {
+            wordListName: state.config.wordListName,
+            duration: state.config.duration,
+            correctChars: state.metrics.correctChars,
+            incorrectChars: state.metrics.incorrectChars,
+            testDurationMs,
+          };
+
+          const result = await saveTestResult(saveData);
+
+          // Cerrar el toast de loading
+          toast.dismiss(loadingToast);
+
+          if (result.success) {
+            setHasSaved(true);
+            if (result.testId !== "guest-test") {
+              toast.success("¡Resultado guardado exitosamente!");
+            } else {
+              toast.info(
+                "Test completado. Inicia sesión para guardar tu progreso."
+              );
+            }
+          } else {
+            toast.error(`Error al guardar: ${result.error}`);
+          }
+        } catch (error) {
+          // Cerrar el toast de loading
+          toast.dismiss(loadingToast);
+          toast.error(
+            error instanceof Error
+              ? error.message
+              : "Error desconocido al guardar"
+          );
+        }
+      };
+
+      saveResult();
+    }
+  }, [state.status, state.startTime, state.config, state.metrics, hasSaved]);
+
+  // Función para reiniciar el test
+  const handleRestart = () => {
+    dispatch({
+      type: "RESET_TEST",
+      payload: {
+        words: initialWords,
+        config: testConfig,
+      },
+    });
+    setHasSaved(false);
+
+    // Re-enfocar el contenedor
+    if (containerRef.current) {
+      containerRef.current.focus();
+    }
+  };
 
   return (
     <div className="w-full max-w-4xl mx-auto p-6">
@@ -425,10 +497,10 @@ export function TypingTestContainer({
         </div>
       </div>
 
-      {/* Instrucciones */}
-      <div className="mt-6 text-center">
+      {/* Instrucciones y Resultados */}
+      <div className="mt-6">
         {state.status === "waiting" && (
-          <div className="space-y-2">
+          <div className="space-y-2 text-center">
             <p className="text-lg font-medium text-muted-foreground">
               Haz clic en el área de arriba y comienza a escribir para iniciar
               el test
@@ -439,7 +511,7 @@ export function TypingTestContainer({
           </div>
         )}
         {state.status === "running" && (
-          <div className="space-y-2">
+          <div className="space-y-2 text-center">
             <p className="text-lg font-medium text-primary">¡Escribiendo!</p>
             <p className="text-sm text-muted-foreground">
               Presiona Backspace para corregir errores
@@ -447,59 +519,12 @@ export function TypingTestContainer({
           </div>
         )}
         {state.status === "finished" && (
-          <div className="space-y-4">
-            <div className="text-2xl font-bold text-primary">
-              ¡Test Completado! 🎉
-            </div>
-            <div className="p-4 bg-muted/50 rounded-lg space-y-2">
-              <p className="text-lg font-medium">Resultados Finales:</p>
-              <div className="flex justify-center gap-8 text-sm">
-                <span>
-                  <strong>WPM:</strong> {state.metrics.wpm}
-                </span>
-                <span>
-                  <strong>Precisión:</strong> {state.metrics.accuracy}%
-                </span>
-                <span>
-                  <strong>Caracteres:</strong> {state.metrics.correctChars}/
-                  {state.metrics.totalChars}
-                </span>
-              </div>
-            </div>
-          </div>
+          <Results
+            metrics={state.metrics}
+            testDuration={state.config.duration}
+            onRestart={handleRestart}
+          />
         )}
-      </div>
-
-      {/* Debug: Información del renderizado */}
-      <div className="mt-8 p-4 bg-muted rounded-lg">
-        <div className="space-y-2 text-sm text-muted-foreground">
-          <p>
-            <strong>Debug:</strong> Se cargaron {initialWords.length} palabras
-            originales.
-          </p>
-          <p>
-            Renderizando {state.words.length} palabras con{" "}
-            {allCharacters.length} caracteres totales.
-          </p>
-          <p>
-            Posición actual del cursor: {state.currentPosition} /{" "}
-            {allCharacters.length}
-          </p>
-          <p>
-            Estados:{" "}
-            {allCharacters.filter((c) => c.status === "pending").length}{" "}
-            pendientes,{" "}
-            {allCharacters.filter((c) => c.status === "correct").length}{" "}
-            correctos,{" "}
-            {allCharacters.filter((c) => c.status === "incorrect").length}{" "}
-            incorrectos
-          </p>
-          <p>
-            Métricas: {state.metrics.correctChars} correctos,{" "}
-            {state.metrics.incorrectChars} incorrectos,{" "}
-            {state.metrics.totalChars} total
-          </p>
-        </div>
       </div>
     </div>
   );
