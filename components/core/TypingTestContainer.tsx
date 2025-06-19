@@ -10,6 +10,7 @@ import {
   TypingTestAction,
   TestMetrics,
 } from "@/lib/types";
+import { calculateWPM, calculateAccuracy } from "@/lib/utils";
 import { Character } from "./Character";
 import { Caret } from "./Caret";
 
@@ -73,15 +74,12 @@ function calculateMetrics(state: TypingTestState): TestMetrics {
   ).length;
   const totalChars = correctChars + incorrectChars;
 
-  // Calcular WPM basado en caracteres correctos
-  const timeElapsed = state.startTime
-    ? (Date.now() - state.startTime) / 1000 / 60
-    : 0;
-  const wpm = timeElapsed > 0 ? Math.round(correctChars / 5 / timeElapsed) : 0;
+  // Calcular tiempo transcurrido desde el inicio
+  const timeElapsedMs = state.startTime ? Date.now() - state.startTime : 0;
 
-  // Calcular precisión
-  const accuracy =
-    totalChars > 0 ? Math.round((correctChars / totalChars) * 100) : 100;
+  // Usar las funciones utilitarias para calcular WPM y precisión
+  const wpm = calculateWPM(correctChars, timeElapsedMs);
+  const accuracy = calculateAccuracy(correctChars, incorrectChars);
 
   return {
     wpm,
@@ -139,13 +137,20 @@ function typingTestReducer(
         ),
       }));
 
+      const newPosition = state.currentPosition + 1;
+      const isTestComplete = newPosition >= allCharacters.length;
+
       const newState = {
         ...state,
         words: newWords,
-        currentPosition: state.currentPosition + 1,
+        currentPosition: newPosition,
         // Si estamos esperando, cambiar a running al procesar el primer carácter
-        status:
-          state.status === "waiting" ? ("running" as const) : state.status,
+        // Si el test está completo, cambiar a finished
+        status: isTestComplete
+          ? ("finished" as const)
+          : state.status === "waiting"
+          ? ("running" as const)
+          : state.status,
         startTime: state.status === "waiting" ? Date.now() : state.startTime,
       };
 
@@ -348,23 +353,49 @@ export function TypingTestContainer({
   return (
     <div className="w-full max-w-4xl mx-auto p-6">
       {/* Header del test con métricas */}
-      <div className="mb-8 flex justify-between items-center">
-        <div className="flex gap-8 text-sm text-muted-foreground">
-          <div>
-            <span className="font-medium">WPM:</span>{" "}
-            <span className="text-lg font-bold">{state.metrics.wpm}</span>
+      <div className="mb-8">
+        {/* Métricas principales */}
+        <div className="flex justify-center gap-12 mb-4">
+          <div className="text-center">
+            <div className="text-3xl font-bold text-primary">
+              {state.metrics.wpm}
+            </div>
+            <div className="text-sm text-muted-foreground font-medium">WPM</div>
           </div>
-          <div>
-            <span className="font-medium">Precisión:</span>{" "}
-            <span className="text-lg font-bold">{state.metrics.accuracy}%</span>
+          <div className="text-center">
+            <div className="text-3xl font-bold text-primary">
+              {state.metrics.accuracy}%
+            </div>
+            <div className="text-sm text-muted-foreground font-medium">
+              Precisión
+            </div>
           </div>
-          <div>
-            <span className="font-medium">Tiempo:</span>{" "}
-            <span className="text-lg font-bold">{state.timeRemaining}s</span>
+          <div className="text-center">
+            <div
+              className={`text-3xl font-bold ${
+                state.timeRemaining <= 10 ? "text-destructive" : "text-primary"
+              }`}
+            >
+              {Math.floor(state.timeRemaining / 60)}:
+              {String(state.timeRemaining % 60).padStart(2, "0")}
+            </div>
+            <div className="text-sm text-muted-foreground font-medium">
+              Tiempo
+            </div>
           </div>
         </div>
-        <div className="text-sm text-muted-foreground">
-          Estado: <span className="font-medium">{state.status}</span>
+
+        {/* Información adicional */}
+        <div className="flex justify-between items-center text-xs text-muted-foreground">
+          <div>
+            Estado:{" "}
+            <span className="font-medium capitalize">{state.status}</span>
+          </div>
+          <div className="flex gap-4">
+            <span>{state.metrics.correctChars} correctos</span>
+            <span>{state.metrics.incorrectChars} errores</span>
+            <span>{state.metrics.totalChars} total</span>
+          </div>
         </div>
       </div>
 
@@ -395,18 +426,47 @@ export function TypingTestContainer({
       </div>
 
       {/* Instrucciones */}
-      <div className="mt-4 text-center text-sm text-muted-foreground">
+      <div className="mt-6 text-center">
         {state.status === "waiting" && (
-          <p>
-            Haz clic en el área de arriba y comienza a escribir para iniciar el
-            test
-          </p>
+          <div className="space-y-2">
+            <p className="text-lg font-medium text-muted-foreground">
+              Haz clic en el área de arriba y comienza a escribir para iniciar
+              el test
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Presiona Backspace para corregir errores durante el test
+            </p>
+          </div>
         )}
         {state.status === "running" && (
-          <p>Escribiendo... Presiona Backspace para corregir errores</p>
+          <div className="space-y-2">
+            <p className="text-lg font-medium text-primary">¡Escribiendo!</p>
+            <p className="text-sm text-muted-foreground">
+              Presiona Backspace para corregir errores
+            </p>
+          </div>
         )}
         {state.status === "finished" && (
-          <p>¡Test completado! Métricas finales mostradas arriba</p>
+          <div className="space-y-4">
+            <div className="text-2xl font-bold text-primary">
+              ¡Test Completado! 🎉
+            </div>
+            <div className="p-4 bg-muted/50 rounded-lg space-y-2">
+              <p className="text-lg font-medium">Resultados Finales:</p>
+              <div className="flex justify-center gap-8 text-sm">
+                <span>
+                  <strong>WPM:</strong> {state.metrics.wpm}
+                </span>
+                <span>
+                  <strong>Precisión:</strong> {state.metrics.accuracy}%
+                </span>
+                <span>
+                  <strong>Caracteres:</strong> {state.metrics.correctChars}/
+                  {state.metrics.totalChars}
+                </span>
+              </div>
+            </div>
+          </div>
         )}
       </div>
 
