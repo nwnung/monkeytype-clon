@@ -124,7 +124,7 @@
     - `lib/types.ts`: Definir los tipos de TypeScript para el estado de los caracteres y del test.
   - **Dependencias del Paso**: Paso 8.
 
-- [ ] Paso 10: Gestión de Estado e Interacción del Teclado
+- [x] Paso 10: Gestión de Estado e Interacción del Teclado
 
   - **Tarea**: Implementar la lógica principal del test. Usar un `useReducer` en `TypingTestContainer` para manejar el estado complejo del test. Añadir un listener de `keydown` para procesar la entrada del usuario (caracteres, backspace, espacio).
   - **Archivos**:
