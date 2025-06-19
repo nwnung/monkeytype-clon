@@ -19,10 +19,10 @@ const publicRoutes = ["/", "/auth/callback"];
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // 1. Actualizar sesión primero
+  // 1. Actualizar sesión y obtener respuesta
   let supabaseResponse = await updateSession(request);
 
-  // 2. Crear cliente para obtener usuario actual
+  // 2. Crear cliente para verificar autenticación en rutas específicas
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -38,13 +38,14 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // 3. Lógica de redirección
+  // 3. Lógica de redirección para rutas protegidas
   if (protectedRoutes.some((route) => pathname.startsWith(route)) && !user) {
     const loginUrl = new URL("/auth/sign-in", request.url);
     loginUrl.searchParams.set("redirectTo", pathname);
     return NextResponse.redirect(loginUrl);
   }
 
+  // 4. Redirigir usuarios autenticados desde páginas de auth
   if (authRoutes.includes(pathname) && user) {
     return NextResponse.redirect(new URL("/protected", request.url));
   }

@@ -68,7 +68,7 @@
     - `middleware.ts`: Implementar el middleware que usa `createMiddlewareClient` para refrescar la sesión del usuario en cada petición y proteger las rutas definidas en el `matcher`.
   - **Dependencias del Paso**: Paso 1.
 
-- [] Paso 5: Layout Principal y Sistema de Temas
+- [x] Paso 5: Layout Principal y Sistema de Temas
 
   - **Tarea**: Crear el layout raíz de la aplicación, incluyendo el `ThemeProvider` para el cambio de tema claro/oscuro. Instalar y crear un componente `Header` básico y un `ThemeToggle`.
   - **Archivos**:
@@ -82,7 +82,7 @@
   - **Instrucciones del Usuario**:
     1.  Ejecuta `npx shadcn-ui@latest add button dropdown-menu`.
 
-- [] Paso 6: Páginas y Formularios de Autenticación
+- [x] Paso 6: Páginas y Formularios de Autenticación
 
   - **Tarea**: Crear las páginas de Iniciar Sesión (`/login`) y Registrarse (`/signup`). Implementar los formularios usando `react-hook-form` y `zod` para la validación, y llamar a los métodos de autenticación de Supabase en el envío.
   - **Archivos**:
@@ -96,7 +96,7 @@
   - **Instrucciones del Usuario**:
     1.  Ejecuta `npx shadcn-ui@latest add input label card`.
 
-- [ ] Paso 7: Actualizar Header con Estado de Autenticación
+- [x] Paso 7: Actualizar Header con Estado de Autenticación
   - **Tarea**: Modificar el componente `Header` para que muestre condicionalmente los enlaces "Login"/"Signup" o "Profile" y un botón de "Logout" basado en el estado de la sesión del usuario.
   - **Archivos**:
     - `components/layout/Header.tsx`: Usar el cliente de Supabase para obtener la sesión y renderizar condicionalmente. El componente deberá ser asíncrono.
@@ -105,7 +105,7 @@
 
 ## Fase 3: Implementación del Test de Mecanografía
 
-- [ ] Paso 8: Página Principal y Carga Inicial de Palabras
+- [x] Paso 8: Página Principal y Carga Inicial de Palabras
 
   - **Tarea**: Crear la página de inicio `app/(main)/page.tsx` como un Server Component que obtiene el conjunto inicial de palabras de la base de datos (usando el cliente Prisma) y las pasa como props a un componente de cliente contenedor.
   - **Archivos**:
@@ -114,7 +114,7 @@
     - `components/core/TypingTestContainer.tsx`: Crear el esqueleto del componente (Client Component) que recibe `initialWords`.
   - **Dependencias del Paso**: Paso 2, Paso 5.
 
-- [ ] Paso 9: Renderizado Estático del Test y Estilos
+- [x] Paso 9: Renderizado Estático del Test y Estilos
 
   - **Tarea**: Implementar el renderizado visual del test. Mapear las palabras y caracteres usando los componentes `Character` (memoizado) y `Caret`. Aplicar los estilos correctos para los estados `pending`, `correct`, `incorrect`.
   - **Archivos**:
@@ -124,14 +124,14 @@
     - `lib/types.ts`: Definir los tipos de TypeScript para el estado de los caracteres y del test.
   - **Dependencias del Paso**: Paso 8.
 
-- [ ] Paso 10: Gestión de Estado e Interacción del Teclado
+- [x] Paso 10: Gestión de Estado e Interacción del Teclado
 
   - **Tarea**: Implementar la lógica principal del test. Usar un `useReducer` en `TypingTestContainer` para manejar el estado complejo del test. Añadir un listener de `keydown` para procesar la entrada del usuario (caracteres, backspace, espacio).
   - **Archivos**:
     - `components/core/TypingTestContainer.tsx`: Introducir `useReducer` y el listener `useEffect` para `keydown`. Implementar la lógica que actualiza el estado de los caracteres y la posición del cursor en respuesta a la entrada. El área debe tener `autoFocus`.
   - **Dependencias del Paso**: Paso 9.
 
-- [ ] Paso 11: Temporizador, Cálculo de Métricas y Finalización
+- [x] Paso 11: Temporizador, Cálculo de Métricas y Finalización
 
   - **Tarea**: Añadir la lógica del temporizador que se inicia cuando el usuario empieza a escribir. Calcular y mostrar WPM y precisión en tiempo real en la UI. Detener el test cuando el tiempo llega a cero y cambiar el estado a `finished`.
   - **Archivos**:
@@ -139,7 +139,7 @@
     - `lib/utils.ts`: Añadir funciones puras para calcular `wpm` y `accuracy`.
   - **Dependencias del Paso**: Paso 10.
 
-- [ ] Paso 12: Pantalla de Resultados y Server Action para Guardar
+- [x] Paso 12: Pantalla de Resultados y Server Action para Guardar
   - **Tarea**: Crear el componente de `Results` que se muestra cuando el test finaliza. Crear la Server Action `saveTestResult` que recalcula las métricas en el servidor y las guarda en la base de datos. Conectar el `TypingTestContainer` para que llame a esta acción al finalizar el test.
   - **Archivos**:
     - `components/core/Results.tsx`: Componente que muestra las métricas finales (WPM, precisión).

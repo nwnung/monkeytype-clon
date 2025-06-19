@@ -5,6 +5,7 @@ import {
   type SignInData,
   type ResetPasswordData,
 } from "@/lib/validations/auth";
+import { db } from "../db";
 
 export class AuthService {
   private supabase = createClient();
@@ -26,6 +27,22 @@ export class AuthService {
     if (error) {
       console.error("SignUp error:", error);
       throw new Error("AUTH_SIGNUP_FAILED");
+    }
+
+    // Sincronizar usuario con la base de datos pública de Prisma
+    if (authData.user) {
+      try {
+        await db.user.create({
+          data: {
+            id: authData.user.id,
+            email: authData.user.email,
+          },
+        });
+      } catch (dbError) {
+        console.error("Error al crear el perfil de usuario en la DB:", dbError);
+        // Opcional: se podría borrar el usuario de Supabase Auth para mantener la consistencia
+        throw new Error("AUTH_PROFILE_CREATION_FAILED");
+      }
     }
 
     return authData;
